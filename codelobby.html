@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeX - Code Lobby</title>
+  <style>
+    /* Basic styling (same as Code Sharing Page) */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #444;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin: 0 20px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      padding: 40px;
+      text-align: center;
+    }
+    .search-bar {
+      margin-bottom: 30px;
+      padding: 10px;
+      font-size: 18px;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .filter-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+      gap: 20px;
+    }
+    .filter-container select {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .code-card {
+      background-color: #282828;
+      color: white;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      font-family: 'Courier New', Courier, monospace;
+      white-space: pre-wrap; /* Ensure code wraps properly */
+      word-wrap: break-word; /* Ensure code wraps properly */
+      overflow-x: auto; /* Allow horizontal scrolling for wide code */
+      cursor: pointer; /* Indicate that the code is clickable */
+    }
+    .code-card:hover {
+      transform: scale(1.05);
+    }
+    .code-snippet {
+      max-height: 150px; /* Set a limit for preview height */
+      overflow: hidden; /* Hide content that exceeds the limit */
+      text-overflow: ellipsis; /* Show ellipsis for overflow content */
+    }
+    #codeContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      overflow: auto;
+      padding-top: 60px;
+    }
+    .modal-content {
+      background-color: #282828;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 900px;
+      max-height: 80%;
+      overflow-y: auto; /* Allow vertical scrolling */
+      color: white;
+      font-family: 'Courier New', Courier, monospace;
+      white-space: pre-wrap; /* Ensure the code maintains its formatting */
+    }
+    .close {
+      color: #aaa;
+      font-size: 28px;
+      font-weight: bold;
+      position: absolute;
+      top: 10px;
+      right: 25px;
+    }
+    .close:hover,
+    .close:focus {
+      color: white;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>Code Lobby - CodeX</header>
+
+  <nav>
+    <a href="test.html">home</a>
+    <a href="codelobby.html">Code Lobby</a>
+    <a href="codesharingpage.html">Share Code</a>
+  </nav>
+
+  <div class="content">
+    <input type="text" id="searchBar" class="search-bar" placeholder="Search codes...">
+    
+    <div class="filter-container">
+      <select id="languageFilter">
+        <option value="">Filter by Language</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="Python">Python</option>
+        <option value="HTML/CSS">HTML/CSS</option>
+        <option value="Java">Java</option>
+        <option value="C++">C++</option>
+      </select>
+    </div>
+
+    <div id="codeContainer"></div>
+  </div>
+
+  <!-- Modal for showing full code -->
+  <div id="codeModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeModal">&times;</span>
+      <pre id="fullCode"></pre>
+    </div>
+  </div>
+
+  <script>
+    function loadCodes() {
+      const codes = JSON.parse(localStorage.getItem('sharedCodes')) || [];
+      const searchQuery = document.getElementById('searchBar').value.toLowerCase();
+      const languageFilter = document.getElementById('languageFilter').value;
+
+      const filteredCodes = codes.filter(code => {
+        const matchesSearch = code.title.toLowerCase().includes(searchQuery) || code.code.toLowerCase().includes(searchQuery);
+        const matchesLanguage = languageFilter ? code.language === languageFilter : true;
+        return matchesSearch && matchesLanguage;
+      });
+
+      const codeContainer = document.getElementById('codeContainer');
+      codeContainer.innerHTML = '';
+
+      filteredCodes.forEach(code => {
+        const card = document.createElement('div');
+        card.classList.add('code-card');
+        
+        // Escape HTML special characters in the code to prevent HTML rendering issues
+        const codeContent = escapeHtml(code.code);
+        const previewContent = codeContent.length > 150 ? codeContent.substring(0, 150) + "..." : codeContent; // Show a preview (first 150 chars)
+
+        card.innerHTML = `        
+          <strong>${code.title}</strong> <em>(${code.language})</em>
+          <pre class="code-snippet">${previewContent}</pre>
+        `;
+        
+        // Add an event listener to toggle full code on click
+        card.addEventListener('click', function() {
+          showModal(codeContent);
+        });
+
+        codeContainer.appendChild(card);
+      });
+    }
+
+    // Function to escape HTML special characters
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Show modal with full code
+    function showModal(fullCode) {
+      const modal = document.getElementById("codeModal");
+      const fullCodeElement = document.getElementById("fullCode");
+      fullCodeElement.textContent = fullCode;
+      modal.style.display = "block";
+    }
+
+    // Close modal when clicking on the close button
+    document.getElementById("closeModal").addEventListener("click", function() {
+      document.getElementById("codeModal").style.display = "none";
+    });
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener("click", function(event) {
+      if (event.target === document.getElementById("codeModal")) {
+        document.getElementById("codeModal").style.display = "none";
+      }
+    });
+
+    document.getElementById('searchBar').addEventListener('input', loadCodes);
+    document.getElementById('languageFilter').addEventListener('change', loadCodes);
+
+    loadCodes(); // Initial load
+  </script>
+
+</body>
+</html>
+</html>

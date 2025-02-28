@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Your Code - CodeX</title>
+  <style>
+    /* Basic styling */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #444;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin: 0 20px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    .content {
+      padding: 40px;
+      text-align: center;
+    }
+    #shareCodeForm {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    #shareCodeForm input,
+    #shareCodeForm select,
+    #shareCodeForm textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #shareCodeForm button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #shareCodeForm button:hover {
+      background-color: #45a049;
+    }
+    .shared-codes {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+    .shared-codes ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .shared-codes li {
+      margin-bottom: 15px;
+      background-color: #f1f1f1;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .shared-codes li:hover {
+      background-color: #ddd;
+    }
+    .delete-button {
+      background-color: #e74c3c;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+    .confirmation-message {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #28a745;
+      color: white;
+      border-radius: 5px;
+      display: none;
+    }
+
+    /* Ad Section Styles */
+    .ad-section {
+      position: absolute;
+      left: 20px; /* Mid-Left */
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #f4f4f4;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      width: 200px;
+      text-align: center;
+      z-index: 1000;
+    }
+    .ad-section h4 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .ad-section a {
+      font-size: 14px;
+      color: #4CAF50;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .ad-section a:hover {
+      text-decoration: underline;
+    }
+
+    /* Mobile Floating Ad */
+    @media (max-width: 768px) {
+      .ad-section {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        transform: none;
+        background-color: #4CAF50;
+        color: #fff;
+        padding: 10px;
+        text-align: center;
+      }
+      .ad-section a {
+        color: #fff;
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Ad Section -->
+<div class="ad-section">
+  <h4>🔥 Learn Python Fast</h4>
+  <p>Python Crash Course, 3rd Edition</p>
+  <a href="https://amzn.to/3DaNv1f" target="_blank">Buy Now</a>
+</div>
+
+<header>Share Your Code - CodeX</header>
+
+<nav>
+  <a href="test.html">home</a>
+  <a href="codelobby.html">Code Lobby</a>
+  <a href="codesharingpage.html">Share Code</a>
+</nav>
+
+<main>
+  <div class="content">
+    <h2>Share Your Code with the World!</h2>
+    <form id="shareCodeForm">
+      <input type="text" id="codeTitle" placeholder="Enter title for your code" required><br>
+      <select id="codeType" required>
+        <option value="">Select Code Type</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="Python">Python</option>
+        <option value="HTML/CSS">HTML/CSS</option>
+        <option value="Java">Java</option>
+        <option value="C++">C++</option>
+      </select><br>
+      <textarea id="codeContent" placeholder="Paste your code here" rows="10" required></textarea><br>
+      <button type="submit">Share Code</button>
+    </form>
+
+    <div id="confirmationMessage" class="confirmation-message">
+      Your code has been shared successfully!
+    </div>
+
+    <div class="shared-codes">
+      <h3>Your Shared Codes</h3>
+      <ul id="sharedCodesList"></ul>
+    </div>
+  </div>
+</main>
+
+<script>
+  function loadSharedCodes() {
+    const sharedCodes = JSON.parse(localStorage.getItem('sharedCodes')) || [];
+    const sharedCodesList = document.getElementById('sharedCodesList');
+    sharedCodesList.innerHTML = '';
+
+    sharedCodes.forEach((code, index) => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `${code.title} - ${code.language} 
+      <button class="delete-button" onclick="deleteCode(${index})">Delete</button>`;
+      sharedCodesList.appendChild(listItem);
+    });
+  }
+
+  function deleteCode(index) {
+    const sharedCodes = JSON.parse(localStorage.getItem('sharedCodes')) || [];
+    sharedCodes.splice(index, 1);
+    localStorage.setItem('sharedCodes', JSON.stringify(sharedCodes));
+    loadSharedCodes();
+  }
+
+  document.getElementById('shareCodeForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const codeTitle = document.getElementById('codeTitle').value;
+    const codeType = document.getElementById('codeType').value;
+    const codeContent = document.getElementById('codeContent').value;
+
+    const sharedCode = { title: codeTitle, language: codeType, code: codeContent };
+    const sharedCodes = JSON.parse(localStorage.getItem('sharedCodes')) || [];
+    sharedCodes.push(sharedCode);
+    localStorage.setItem('sharedCodes', JSON.stringify(sharedCodes));
+
+    document.getElementById('confirmationMessage').style.display = 'block';
+
+    document.getElementById('shareCodeForm').reset();
+    loadSharedCodes();
+  });
+
+  loadSharedCodes();
+</script>
+
+</body>
+</html>
